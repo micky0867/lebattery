@@ -1,0 +1,24 @@
+#! /bin/bash
+
+# If allowed_telnetPort is protected by a password, add the password here
+TELNETPASSWORD=""
+# Attribute for batterylevel
+ATTRIBUT="batterylevel"
+
+
+[ ! -z "$TELNETPASSWORD" ] && TELNETPASSWORD="$TELNETPASSWORD\n"
+TAGS=$(echo -e "${TELNETPASSWORD}list MODE=lan-bluetooth" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password" | tr "[:cntrl:]" "\n" | sed 's/ //g')
+for tag in $TAGS
+do
+  [ "$1" = "-v" ] && echo "Ermittle Adresse fuer $tag ..."
+  ADDR=$(echo -e "${TELNETPASSWORD}list $tag" | socat -t60 - TCP:127.0.0.1:7072 | grep "ADDRESS" | awk '{print $2}' | tr "[:cntrl:]" "\n" | sed 's/ //g')
+  [ "$1" = "-v" ] && echo "Ermittle $ATTRIBUT fuer $tag ($ADDR) ..."
+  LEVEL=$(gatttool -t random -b $ADDR --char-read --uuid 0x2a19 2>&1 | awk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
+  if [ ! -z "$LEVEL" ]; then
+    echo -e "${TELNETPASSWORD}setreading $tag $ATTRIBUT $LEVEL" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password"
+    [ "$1" = "-v" ] && echo "Setze $ATTRIBUT fuer $tag auf $LEVEL"
+  else
+    [ "$1" = "-v" ] && echo "$tag ($ADDR) nicht in der Naehe"
+  fi
+  [ "$1" = "-v" ] && echo ""
+done
