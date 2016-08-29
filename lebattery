@@ -17,11 +17,11 @@ fi
 
 for tag in $TAGS
 do
-  [ ! -z "$1" ] && echo "Determining address fuer $tag ..."
+  [ ! -z "$1" ] && echo "Determining address for $tag ..."
   TCONFIG=$(echo -e "${TELNETPASSWORD}list $tag" | socat -t60 - TCP:127.0.0.1:7072 | tr "[:cntrl:]" "\n")
   STATE=$(echo "$TCONFIG" | awk '{if($1=="STATE")print $2}')
   if [ "$STATE" != "present" ]; then
-    [ ! -z "$1" ] && echo "$tag is in state ${STATE}, no further action"
+    [ ! -z "$1" ] && echo "$tag is in state ${STATE}, no further action required"
   else
     ADDR=$(echo "$TCONFIG" | awk '{if($1=="ADDRESS") print $2}' | tr "[:cntrl:]" "\n" | sed 's/ //g')
     [ ! -z "$1" ] && echo "Fetching $ATTRIBUT for $tag ($ADDR) ..."
