@@ -10,6 +10,15 @@ LETAGS=""
 # Ensure that we find gatttool in our PATH
 PATH=$PATH:/bin:/usr/bin:/usr/local/bin
 
+if [ "$1" = "-v" ]; then
+  VERBOSE=y
+  shift
+fi
+
+if [ ! -z "$*" -a -z "$LETAGS" ]; then
+  LETAGS="$*"
+fi
+
 [ ! -z "$TELNETPASSWORD" ] && TELNETPASSWORD="$TELNETPASSWORD\n"
 if [ -z "$LETAGS" ]; then
   TAGS=$(echo -e "${TELNETPASSWORD}list MODE=lan-bluetooth" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password" | tr "[:cntrl:]" "\n" | sed 's/ //g')
@@ -19,21 +28,21 @@ fi
 
 for tag in $TAGS
 do
-  [ ! -z "$1" ] && echo "Determining address for $tag ..."
+  [ ! -z "$VERBOSE" ] && echo "Determining address for $tag ..."
   TCONFIG=$(echo -e "${TELNETPASSWORD}list $tag" | socat -t60 - TCP:127.0.0.1:7072 | tr "[:cntrl:]" "\n")
   STATE=$(echo "$TCONFIG" | awk '{if($1=="STATE")print $2}')
   if [ "$STATE" != "present" ]; then
-    [ ! -z "$1" ] && echo "$tag is in state ${STATE}, no further action required"
+    [ ! -z "$VERBOSE" ] && echo "$tag is in state ${STATE}, no further action required"
   else
     ADDR=$(echo "$TCONFIG" | awk '{if($1=="ADDRESS") print $2}' | tr "[:cntrl:]" "\n" | sed 's/ //g')
-    [ ! -z "$1" ] && echo "Fetching $ATTRIBUT for $tag ($ADDR) ..."
+    [ ! -z "$VERBOSE" ] && echo "Fetching $ATTRIBUT for $tag ($ADDR) ..."
     LEVEL=$(gatttool -t random -b $ADDR --char-read --uuid 0x2a19 2>&1 | awk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
     if [ ! -z "$LEVEL" ]; then
       echo -e "${TELNETPASSWORD}setreading $tag $ATTRIBUT $LEVEL" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password"
-      [ ! -z "$1" ] && echo "Setting $ATTRIBUT for $tag to ${LEVEL}%"
+      [ ! -z "$VERBOSE" ] && echo "Setting $ATTRIBUT for $tag to ${LEVEL}%"
     else
-      [ ! -z "$1" ] && echo "No valid data found for $tag ($ADDR)"
+      [ ! -z "$VERBOSE" ] && echo "No valid data found for $tag ($ADDR)"
     fi
-    [ ! -z "$1" ] && echo ""
+    [ ! -z "$VERBOSE" ] && echo ""
   fi
 done
