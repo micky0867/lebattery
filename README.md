@@ -10,10 +10,10 @@ Needs FHEM, lepresenced, bluez, gatttool and socat. Depending on your distributi
 
 Options:
 
--Update all LE-tags defined in FHEM:
+-Update all LE-tags defined in FHEM:<br>
 ./lebattery -v
 
--Update only given LE-tags in FHEM:
+-Update only given LE-tags in FHEM:<br>
 ./lebattery -v tagname1 tagname2 ....
 
 See also http://www.fhemwiki.de/wiki/Anwesenheitserkennung
