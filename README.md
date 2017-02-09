@@ -6,11 +6,9 @@ You will need FHEM (http://fhem.de) and lepresenced (https://github.com/mhop/fhe
 
 Reads battery values from all le-bluetooth devices configured in FHEM and writes them to a given attribute in FHEM.
 
-Supports both, Gigaset and Nut devices.
-
-Gigaset devices have public addresses (switch -t public)
-
-NUT devices have static random addresses (switch -t random)
+Supports both, Gigaset and Nut devices.<br>
+Gigaset devices have public addresses (switch -t public)<br>
+NUT devices have static random addresses (switch -t random)<br>
 
 Needs FHEM, lepresenced, bluez, gatttool and socat. Depending on your distribution, also gawk is needed.
 
