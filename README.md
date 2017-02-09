@@ -8,6 +8,8 @@ Reads battery values from all le-bluetooth devices configured in FHEM and writes
 
 Needs FHEM, lepresenced, bluez, gatttool and socat. Depending on your distribution, also gawk is needed.
 
+Now supports Gigaset and Nut devices (the latter require "-t random" option)
+
 Options:
 
 -Update all LE-tags defined in FHEM:<br>
