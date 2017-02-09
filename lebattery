@@ -35,12 +35,13 @@ do
     [ ! -z "$VERBOSE" ] && echo "$tag is in state ${STATE}, no further action required"
   else
     [ ! -z "$VERBOSE" ] && printf "Determining type for $tag ... "
-    TYPE=$(echo "$TCONFIG" | awk '{if($3=="device_name")print $4}')
-    echo "$TYPE"
-    [ "$TYPE" = "nut" ] && XATTR="-t random"
+    GTYPE=$(echo "$TCONFIG" | awk '{if($3=="device_name")print $4}')
+    echo "$GTYPE"
+    TYPE="public"
+    [ "$GTYPE" = "nut" ] && TYPE="random"
     ADDR=$(echo "$TCONFIG" | awk '{if($1=="ADDRESS") print $2}' | tr "[:cntrl:]" "\n" | sed 's/ //g')
     [ ! -z "$VERBOSE" ] && echo "Fetching $ATTRIBUT for $tag ($ADDR) ..."
-    LEVEL=$(gatttool $XATTR -b $ADDR --char-read --uuid 0x2a19 2>&1 | awk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
+    LEVEL=$(gatttool -t $TYPE -b $ADDR --char-read --uuid 0x2a19 2>&1 | awk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
     if [ ! -z "$LEVEL" ]; then
       echo -e "${TELNETPASSWORD}setreading $tag $ATTRIBUT $LEVEL" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password"
       [ ! -z "$VERBOSE" ] && echo "Setting $ATTRIBUT for $tag to ${LEVEL}%"
