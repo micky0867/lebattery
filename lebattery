@@ -36,17 +36,21 @@ do
   else
     [ ! -z "$VERBOSE" ] && printf "Determining type for $tag ... "
     GTYPE=$(echo "$TCONFIG" | gawk '{if($3=="device_name")print $4}')
-    echo "$GTYPE"
+    [ ! -z "$VERBOSE" ] && echo "$GTYPE"
     TYPE="public"
     [ "$GTYPE" = "nut" ] && TYPE="random"
     ADDR=$(echo "$TCONFIG" | gawk '{if($1=="ADDRESS") print $2}' | tr "[:cntrl:]" "\n" | sed 's/ //g')
     [ ! -z "$VERBOSE" ] && echo "Fetching $ATTRIBUT for $tag ($ADDR) ..."
-    LEVEL=$(gatttool -t $TYPE -b $ADDR --char-read --uuid 0x2a19 2>&1 | gawk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
-    if [ ! -z "$LEVEL" ]; then
+    DATA=$(gatttool -t $TYPE -b $ADDR --char-read --uuid 0x2a19 2>&1)
+    LEVEL=$(echo "$DATA" | gawk '{if($1 == "handle:") {printf("%d\n",strtonum("0x"$4))}}')
+    if [ ! -z "$LEVEL" ] && [ $LEVEL -gt 0 -a $LEVEL -lt 101 ]; then
       echo -e "${TELNETPASSWORD}setreading $tag $ATTRIBUT $LEVEL" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password"
       [ ! -z "$VERBOSE" ] && echo "Setting $ATTRIBUT for $tag to ${LEVEL}%"
     else
-      [ ! -z "$VERBOSE" ] && echo "No valid data found for $tag ($ADDR)"
+      if [ ! -z "$VERBOSE" ]; then
+        echo "No valid data found for $tag ($ADDR), data is:"
+        echo ">$DATA<"
+      fi
     fi
     [ ! -z "$VERBOSE" ] && echo ""
   fi
