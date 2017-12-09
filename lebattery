@@ -22,6 +22,10 @@ fi
 [ ! -z "$TELNETPASSWORD" ] && TELNETPASSWORD="$TELNETPASSWORD\n"
 if [ -z "$LETAGS" ]; then
   TAGS=$(echo -e "${TELNETPASSWORD}list MODE=lan-bluetooth" | socat -t60 - TCP:127.0.0.1:7072 | grep -v "Password" | tr "[:cntrl:]" "\n" | sed 's/ //g')
+  echo "$TAGS" | grep "Internals" >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    TAGS=$(echo "$TAGS" | grep "NAME" | sed 's/NAME//')
+  fi
 else
   TAGS="$LETAGS"
 fi
